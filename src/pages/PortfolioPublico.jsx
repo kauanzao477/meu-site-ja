@@ -9,62 +9,54 @@ function PortfolioPublico() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+
   useEffect(() => {
-    const fetchPortfolio = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const q = query(collection(db, 'sites'), where('subdominio', '==', subdominio));
-        const querySnapshot = await getDocs(q);
-        if (querySnapshot.empty) {
-          setError('Portfólio não encontrado.');
-          setPortfolio(null);
-        } else {
-          const doc = querySnapshot.docs[0];
-          setPortfolio({ id: doc.id, ...doc.data() });
-        }
-      } catch (err) {
-        console.error('Erro ao buscar portfólio:', err);
-        setError('Erro ao carregar o portfólio.');
+  const fetchPortfolio = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      console.log("Buscando:", subdominio);
+
+      const q = query(
+        collection(db, 'sites'),
+        where('subdominio', '==', subdominio)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      console.log("Encontrados:", querySnapshot.size);
+
+      if (querySnapshot.empty) {
+        setError('Portfólio não encontrado.');
+        setPortfolio(null);
+      } else {
+        const doc = querySnapshot.docs[0];
+
+        console.log("Dados:", doc.data());
+
+        setPortfolio({
+          id: doc.id,
+          ...doc.data()
+        });
       }
-      setLoading(false);
-    };
 
-    if (subdominio) {
-      fetchPortfolio();
+    } catch (err) {
+      console.error('Erro ao buscar portfólio:', err);
+      setError('Erro ao carregar o portfólio.');
     }
-  }, [subdominio]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-          <p className="mt-4 text-gray-600">Carregando portfólio...</p>
-        </div>
-      </div>
-    );
+    setLoading(false);
+  };
+
+
+  if (subdominio) {
+    fetchPortfolio();
+  } else {
+    setLoading(false);
   }
 
-  if (error || !portfolio) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
-          <div className="text-6xl mb-4">😕</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Portfólio não encontrado</h2>
-          <p className="text-gray-600">{error || 'O portfólio que você procurou não existe.'}</p>
-          <button
-            onClick={() => navigate('/galeria')}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            Voltar para a galeria
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return <PublicPreviewView data={portfolio} />;
+}, [subdominio]);
 }
 
 function PublicPreviewView({ data }) {
